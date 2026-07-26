@@ -106,14 +106,57 @@ function popupFor(layerLabel) {
   };
 }
 
+// ---- UI FEEDBACK HELPERS ----
+let loadingTimer = null;
+function setMapLoading(isLoading) {
+  const el = document.getElementById('mapLoading');
+  if (!el) return;
+  clearTimeout(loadingTimer);
+  if (isLoading) {
+    // small delay so quick loads (cache hits) don't flash the indicator
+    loadingTimer = setTimeout(() => el.classList.add('show'), 120);
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+let toastTimer = null;
+function showDataToast(message) {
+  const el = document.getElementById('dataToast');
+  const textEl = document.getElementById('dataToastText');
+  if (!el || !textEl) return;
+  textEl.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function hideDataToast() {
+  const el = document.getElementById('dataToast');
+  if (el) el.classList.remove('show');
+  clearTimeout(toastTimer);
+}
+
+function updateSliderFill() {
+  const slider = document.getElementById('yearSlider');
+  const fill = document.getElementById('sliderFill');
+  if (!slider || !fill) return;
+  const min = parseInt(slider.min, 10);
+  const max = parseInt(slider.max, 10);
+  const pct = ((parseInt(slider.value, 10) - min) / (max - min)) * 100;
+  fill.style.width = `${pct}%`;
+}
+
 // ---- RENDER ----
 async function renderMapForState() {
   const { scenario, year } = state;
+  setMapLoading(true);
 
   const [floodedData, atRiskData] = await Promise.all([
     fetchGeoJSON(scenario, 'flooded', year),
     fetchGeoJSON(scenario, 'atrisk', year),
   ]);
+
+  setMapLoading(false);
 
   if (floodedLayer) { map.removeLayer(floodedLayer); floodedLayer = null; }
   if (atRiskLayer) { map.removeLayer(atRiskLayer); atRiskLayer = null; }
@@ -123,6 +166,12 @@ async function renderMapForState() {
   }
   if (floodedData && state.showFlooded) {
     floodedLayer = L.geoJSON(floodedData, { style: floodedStyle, onEachFeature: popupFor('Rob Aktif') }).addTo(map);
+  }
+
+  if (!floodedData && !atRiskData) {
+    showDataToast(`Data belum tersedia untuk tahun ${year}`);
+  } else {
+    hideDataToast();
   }
 }
 
@@ -134,29 +183,45 @@ function computeEffectiveLevel(year, scenario) {
   return MHWS + slr + maxSubsidenceM;
 }
 
+function flashValue(el) {
+  if (!el) return;
+  el.classList.remove('updating');
+  // force reflow so the animation can re-trigger on repeated updates
+  void el.offsetWidth;
+  el.classList.add('updating');
+}
+
 async function updateReadout() {
   const { year, scenario } = state;
 
-  document.getElementById('roYear').textContent = year;
-  document.getElementById('roLevel').innerHTML = `${computeEffectiveLevel(year, scenario).toFixed(2)}<span class="readout-unit">m</span>`;
+  const roYear = document.getElementById('roYear');
+  const roLevel = document.getElementById('roLevel');
+  const roFlooded = document.getElementById('roFlooded');
+  const roRisk = document.getElementById('roRisk');
+
+  roYear.textContent = year;
+  roLevel.innerHTML = `${computeEffectiveLevel(year, scenario).toFixed(2)}<span class="readout-unit">m</span>`;
+  [roYear, roLevel].forEach(flashValue);
 
   const stats = await loadStats(scenario);
   if (stats) {
     const row = stats.find(r => r.year === year);
     if (row) {
-      document.getElementById('roFlooded').innerHTML = `${row.flooded_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
-      document.getElementById('roRisk').innerHTML = `${row.atrisk_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
+      roFlooded.innerHTML = `${row.flooded_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
+      roRisk.innerHTML = `${row.atrisk_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
+      [roFlooded, roRisk].forEach(flashValue);
       return;
     }
   }
-  document.getElementById('roFlooded').innerHTML = `—<span class="readout-unit">km²</span>`;
-  document.getElementById('roRisk').innerHTML = `—<span class="readout-unit">km²</span>`;
+  roFlooded.innerHTML = `—<span class="readout-unit">km²</span>`;
+  roRisk.innerHTML = `—<span class="readout-unit">km²</span>`;
 }
 
 // ---- CONTROLS ----
 function setYear(year) {
   state.year = Math.max(CONFIG.minYear, Math.min(CONFIG.maxYear, year));
   document.getElementById('yearSlider').value = state.year;
+  updateSliderFill();
   renderMapForState();
   updateReadout();
 }
@@ -172,8 +237,11 @@ function setScenario(scenario) {
 function togglePlay() {
   state.playing = !state.playing;
   const icon = document.getElementById('playIcon');
+  const btn = document.getElementById('playBtn');
   if (state.playing) {
     icon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+    btn.classList.add('playing');
+    btn.setAttribute('aria-label', 'Jeda animasi');
     state.playTimer = setInterval(() => {
       let next = state.year + 1;
       if (next > CONFIG.maxYear) next = CONFIG.minYear;
@@ -181,6 +249,8 @@ function togglePlay() {
     }, CONFIG.playIntervalMs);
   } else {
     icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    btn.classList.remove('playing');
+    btn.setAttribute('aria-label', 'Putar animasi');
     clearInterval(state.playTimer);
   }
 }
@@ -228,6 +298,7 @@ function init() {
     if (e.key === 'Escape') closeTechPanel();
   });
 
+  updateSliderFill();
   renderMapForState();
   updateReadout();
 }
