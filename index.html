@@ -76,8 +76,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: rgba(10,20,32,0.92);
+  background: rgba(8,16,26,0.96);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
   box-shadow: var(--shadow-soft);
 }
@@ -148,15 +149,17 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   top: 60px; left: 12px;
   z-index: 150;
   width: 224px;
-  background: rgba(10,20,32,0.92);
+  background: rgba(8,16,26,0.96);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--shadow-panel);
-  animation: panel-in 0.4s var(--ease) both;
+  animation: panel-in 0.35s var(--ease) both;
+  will-change: transform;
 }
-@keyframes panel-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes panel-in { from { transform: translateY(-6px); } to { transform: translateY(0); } }
 .panel-block { border-bottom: 1px solid var(--line); padding: 13px 14px; }
 .panel-block:last-child { border-bottom: none; }
 .panel-label {
@@ -238,8 +241,9 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   z-index: 150;
-  background: rgba(10,20,32,0.94);
+  background: rgba(8,16,26,0.97);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
   padding: 13px 16px 15px;
   box-shadow: 0 -8px 24px rgba(0,0,0,0.3);
@@ -385,8 +389,9 @@ input[type="range"].year-slider::-moz-range-thumb {
   top: 60px; left: 50%;
   transform: translateX(-50%) translateY(-8px);
   z-index: 160;
-  background: rgba(10,20,32,0.94);
+  background: rgba(8,16,26,0.97);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--warning-dim);
   border-radius: 6px;
   padding: 8px 14px;
@@ -411,7 +416,7 @@ input[type="range"].year-slider::-moz-range-thumb {
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--paper-dim2);
-  background: rgba(10,20,32,0.85);
+  background: rgba(8,16,26,0.92);
   border: 1px solid var(--line);
   border-radius: 5px;
   padding: 6px 10px;
@@ -463,6 +468,7 @@ input[type="range"].year-slider::-moz-range-thumb {
   padding: 16px 20px;
   background: rgba(10,20,32,0.96);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
   z-index: 2;
 }
