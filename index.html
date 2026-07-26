@@ -3,756 +3,587 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RobWatch — Simulasi Rob & Penurunan Tanah Semarang-Demak</title>
-<meta name="description" content="Simulasi interaktif banjir rob dan penurunan tanah pesisir Semarang-Demak, 2025-2050. Berdasarkan data InSAR, DEMNAS, dan proyeksi IPCC AR6.">
+<title>RobWatch — Simulasi Rob & Penurunan Tanah, Semarang–Demak</title>
+<meta name="description" content="Model simulasi genangan rob berbasis DEMNAS, InSAR, dan proyeksi IPCC AR6. Pesisir Semarang–Demak, 2025–2050.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root {
   --abyss:    #0a1420;
-  --abyss-2:  #0d1b2b;
-  --tide:     #1c3a52;
-  --tide-2:   #142c40;
+  --tide:     #16283a;
+  --tide-2:   #0f1e2c;
   --warning:  #e8a33d;
-  --warning-d:#c98826;
   --flood:    #4a9eda;
-  --flood-d:  #3480bd;
   --paper:    #eae6da;
-  --paper-dim:rgba(234,230,218,0.55);
-  --paper-dim2:rgba(234,230,218,0.32);
-  --disp:     'Fraunces', serif;
-  --body:     'Inter', sans-serif;
+  --paper-dim:  rgba(234,230,218,0.58);
+  --paper-dim2: rgba(234,230,218,0.34);
+  --line:     rgba(234,230,218,0.12);
   --mono:     'IBM Plex Mono', monospace;
+  --body:     'Inter', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html, body { height: 100%; overflow: hidden; }
 body {
   background: var(--abyss);
   color: var(--paper);
   font-family: var(--body);
-  font-size: 16px;
-  line-height: 1.5;
-  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.4;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-}
-
 a { color: inherit; }
 ::selection { background: var(--warning); color: var(--abyss); }
-
-/* focus visibility */
 button:focus-visible, a:focus-visible, input:focus-visible {
   outline: 2px solid var(--warning);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
-/* ═══ TOP BAR ═══ */
-.topbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 32px;
-  pointer-events: none;
-}
-.topbar-wordmark {
-  font-family: var(--disp);
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: -0.01em;
-  color: var(--paper);
-  pointer-events: auto;
-  text-decoration: none;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.topbar-wordmark .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--flood);
-  display: inline-block;
-  animation: pulse-dot 3s ease-in-out infinite;
-}
-@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.35} }
-
-.topbar-back {
-  pointer-events: auto;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--paper-dim);
-  text-decoration: none;
-  padding: 8px 14px;
-  border: 1px solid rgba(234,230,218,0.15);
-  border-radius: 99px;
-  transition: border-color 0.2s, color 0.2s;
-  background: rgba(10,20,32,0.4);
-  backdrop-filter: blur(8px);
-}
-.topbar-back:hover { border-color: var(--warning); color: var(--warning); }
-
-/* ═══ HERO / MAP SECTION ═══ */
-.hero-map-section {
-  position: relative;
+/* ═══ APP SHELL ═══ */
+.app {
   height: 100vh;
-  min-height: 640px;
-  width: 100%;
-  background: var(--abyss);
+  width: 100vw;
+  position: relative;
 }
 
 #map {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  background: var(--abyss-2);
+  background: var(--tide-2);
 }
 
-.hero-intro {
+/* ═══ HEADER BAR ═══ */
+.header-bar {
   position: absolute;
-  top: 90px;
-  left: 32px;
-  z-index: 50;
-  max-width: 380px;
-  pointer-events: none;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(10,20,32,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
 }
-.hero-eyebrow {
+
+.header-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.header-id .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--flood);
+  animation: pulse-dot 3s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.header-id .sub {
+  color: var(--paper-dim2);
+  font-weight: 400;
   font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--warning);
-  margin-bottom: 10px;
+  border-left: 1px solid var(--line);
+  padding-left: 10px;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.hero-title {
-  font-family: var(--disp);
-  font-size: clamp(28px, 3.4vw, 42px);
-  font-weight: 600;
-  line-height: 1.08;
-  color: var(--paper);
-  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+.hbtn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 7px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(234,230,218,0.03);
+  color: var(--paper-dim);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.hero-title em { font-style: italic; color: var(--flood); }
+.hbtn:hover { border-color: var(--paper-dim2); color: var(--paper); background: rgba(234,230,218,0.06); }
+.hbtn.active { border-color: var(--warning); color: var(--warning); background: rgba(232,163,61,0.08); }
+.hbtn svg { width: 13px; height: 13px; }
 
-/* ═══ TIDE GAUGE READOUT (signature element) ═══ */
-.gauge-dock {
+/* ═══ LEFT: LAYER / SCENARIO PANEL ═══ */
+.control-panel {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  z-index: 100;
-  background: linear-gradient(to top, rgba(10,20,32,0.97) 0%, rgba(10,20,32,0.88) 70%, transparent 100%);
-  padding: 28px 32px 24px;
+  top: 60px; left: 12px;
+  z-index: 150;
+  width: 220px;
+  background: rgba(10,20,32,0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.panel-block { border-bottom: 1px solid var(--line); padding: 12px 14px; }
+.panel-block:last-child { border-bottom: none; }
+.panel-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-dim2);
+  margin-bottom: 9px;
 }
 
-.gauge-readout {
-  display: flex;
-  align-items: flex-end;
-  gap: 32px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-
-.gauge-cell {
+.scenario-select {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.gauge-label {
+.scenario-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 9px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper-dim);
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.scenario-opt:hover { border-color: var(--paper-dim2); }
+.scenario-opt.active {
+  border-color: var(--warning);
+  background: rgba(232,163,61,0.08);
+  color: var(--paper);
+}
+.scenario-opt .rate { color: var(--paper-dim2); font-size: 10px; }
+.scenario-opt.active .rate { color: var(--warning); }
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--paper-dim);
+}
+.layer-row input[type="checkbox"] {
+  width: 13px; height: 13px;
+  accent-color: var(--warning);
+  cursor: pointer;
+  margin: 0;
+}
+.layer-swatch { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+.layer-swatch.flooded { background: var(--flood); }
+.layer-swatch.atrisk { background: var(--warning); opacity: 0.7; }
+
+/* ═══ BOTTOM: TIME + READOUT DOCK ═══ */
+.dock {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 150;
+  background: rgba(10,20,32,0.94);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+  padding: 12px 16px 14px;
+}
+
+.readout-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.readout-cell { display: flex; flex-direction: column; gap: 1px; }
+.readout-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--paper-dim2);
 }
-.gauge-value {
+.readout-value {
   font-family: var(--mono);
   font-weight: 600;
-  font-size: clamp(28px, 4vw, 44px);
-  line-height: 1;
+  font-size: 22px;
   color: var(--paper);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  line-height: 1.1;
 }
-.gauge-value.year { color: var(--warning); }
-.gauge-value.flood-stat { color: var(--flood); }
-.gauge-value.risk-stat { color: var(--warning); }
-.gauge-unit {
-  font-size: 0.42em;
-  font-weight: 400;
-  color: var(--paper-dim);
-  margin-left: 4px;
-}
+.readout-value.year { color: var(--warning); font-size: 24px; }
+.readout-value.flooded { color: var(--flood); }
+.readout-value.atrisk { color: var(--warning); }
+.readout-unit { font-size: 0.5em; font-weight: 400; color: var(--paper-dim2); margin-left: 3px; }
 
-.gauge-controls {
+.timeline-row {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
-
-.gauge-play {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 1.5px solid var(--warning);
-  background: rgba(232,163,61,0.1);
-  color: var(--warning);
+.play-btn {
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(234,230,218,0.03);
+  color: var(--paper);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.2s, transform 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.gauge-play:hover { background: rgba(232,163,61,0.22); }
-.gauge-play:active { transform: scale(0.94); }
-.gauge-play svg { width: 16px; height: 16px; }
+.play-btn:hover { border-color: var(--warning); background: rgba(232,163,61,0.08); }
+.play-btn svg { width: 13px; height: 13px; }
 
-.slider-wrap {
-  flex: 1;
-  position: relative;
-  min-width: 200px;
+.slider-col { flex: 1; min-width: 160px; }
+.slider-ticks {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 9px; color: var(--paper-dim2);
+  margin-bottom: 4px;
 }
-.slider-track-labels {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--paper-dim2);
-  margin-bottom: 6px;
-  letter-spacing: 0.04em;
-}
-
 input[type="range"].year-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 3px;
   border-radius: 99px;
   background: rgba(234,230,218,0.15);
-  outline: none;
-  cursor: pointer;
-  position: relative;
+  outline: none; cursor: pointer;
 }
 input[type="range"].year-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px; height: 16px;
-  border-radius: 50%;
+  width: 13px; height: 13px;
+  border-radius: 2px;
   background: var(--warning);
-  border: 3px solid var(--abyss);
+  border: 2px solid var(--abyss);
   box-shadow: 0 0 0 1px var(--warning);
   cursor: grab;
-  margin-top: -1px;
 }
 input[type="range"].year-slider::-moz-range-thumb {
-  width: 16px; height: 16px;
-  border-radius: 50%;
+  width: 13px; height: 13px;
+  border-radius: 2px;
   background: var(--warning);
-  border: 3px solid var(--abyss);
+  border: 2px solid var(--abyss);
   box-shadow: 0 0 0 1px var(--warning);
   cursor: grab;
 }
 
-.gauge-bottom-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.scenario-toggle {
-  display: flex;
-  gap: 2px;
-  background: rgba(234,230,218,0.06);
-  border: 1px solid rgba(234,230,218,0.12);
-  border-radius: 99px;
-  padding: 3px;
-}
-.scenario-btn {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.05em;
-  padding: 7px 14px;
-  border-radius: 99px;
-  border: none;
-  background: transparent;
-  color: var(--paper-dim);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-}
-.scenario-btn.active {
-  background: var(--warning);
-  color: var(--abyss);
-  font-weight: 600;
-}
-.scenario-btn:hover:not(.active) { color: var(--paper); }
-
-.layer-legend {
-  display: flex;
-  gap: 16px;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--paper-dim);
-  flex-wrap: wrap;
-}
-.legend-item { display: flex; align-items: center; gap: 6px; }
-.legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-.legend-swatch.flooded { background: var(--flood); }
-.legend-swatch.atrisk { background: var(--warning); opacity: 0.75; }
-
-.scroll-cue {
-  position: absolute;
-  bottom: 210px;
-  right: 32px;
-  z-index: 60;
-  writing-mode: vertical-rl;
+.coord-readout {
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--paper-dim2);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  pointer-events: none;
-}
-.scroll-cue::after {
-  content: '';
-  width: 1px; height: 30px;
-  background: var(--paper-dim2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Leaflet overrides for RobWatch theme */
+/* Leaflet overrides */
+.leaflet-control-zoom { margin-top: 60px !important; }
 .leaflet-control-zoom a {
-  background: var(--tide-2) !important;
+  background: var(--tide) !important;
   color: var(--paper) !important;
-  border-color: rgba(234,230,218,0.1) !important;
+  border-color: var(--line) !important;
 }
-.leaflet-control-zoom a:hover { background: var(--tide) !important; }
+.leaflet-control-zoom a:hover { background: var(--tide-2) !important; }
 .leaflet-control-scale-line {
   background: rgba(10,20,32,0.85) !important;
-  border-color: rgba(234,230,218,0.2) !important;
+  border-color: var(--line) !important;
   color: var(--paper-dim) !important;
   font-family: var(--mono) !important;
 }
-.leaflet-popup-content-wrapper {
-  background: var(--tide-2) !important;
-  border: 1px solid rgba(234,230,218,0.12) !important;
-  border-radius: 10px !important;
-}
-.leaflet-popup-content { color: var(--paper) !important; font-family: var(--mono) !important; font-size: 11px !important; }
-.leaflet-popup-tip { background: var(--tide-2) !important; }
+.leaflet-popup-content-wrapper { background: var(--tide) !important; border: 1px solid var(--line) !important; border-radius: 6px !important; }
+.leaflet-popup-content { color: var(--paper) !important; font-family: var(--mono) !important; font-size: 11px !important; margin: 8px 10px !important; }
+.leaflet-popup-tip { background: var(--tide) !important; }
+.leaflet-bar { border: none !important; }
 
-/* ═══ THE SHIFT (narrative scroll section) ═══ */
-.shift-section {
-  padding: 140px 32px;
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
+/* ═══ SLIDE-OUT TECHNICAL PANEL ═══ */
+.tech-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(5,10,16,0.6);
+  display: none;
 }
-.shift-eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--flood);
-  margin-bottom: 24px;
-}
-.shift-statement {
-  font-family: var(--disp);
-  font-size: clamp(28px, 4.6vw, 52px);
-  font-weight: 500;
-  line-height: 1.22;
-  color: var(--paper-dim2);
-}
-.shift-statement .highlight {
-  color: var(--paper);
-  font-weight: 600;
-}
-.shift-statement .num {
-  color: var(--warning);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+.tech-overlay.open { display: block; }
 
-/* ═══ WHY SUBSIDENCE WINS ═══ */
-.insight-section {
-  padding: 100px 32px 140px;
-  background: var(--abyss-2);
-  border-top: 1px solid rgba(234,230,218,0.06);
-  border-bottom: 1px solid rgba(234,230,218,0.06);
-}
-.insight-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
-  align-items: center;
-}
-.insight-text h2 {
-  font-family: var(--disp);
-  font-size: clamp(26px, 3vw, 36px);
-  font-weight: 600;
-  line-height: 1.15;
-  margin-bottom: 20px;
-  color: var(--paper);
-}
-.insight-text p {
-  font-size: 15px;
-  line-height: 1.85;
-  color: var(--paper-dim);
-  margin-bottom: 16px;
-  font-weight: 300;
-}
-.insight-text p strong { color: var(--paper); font-weight: 600; }
-
-.compare-chart {
-  background: var(--tide-2);
-  border: 1px solid rgba(234,230,218,0.08);
-  border-radius: 16px;
-  padding: 28px;
-}
-.compare-row { margin-bottom: 22px; }
-.compare-row:last-child { margin-bottom: 0; }
-.compare-row-head {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--mono);
-  font-size: 11px;
-  margin-bottom: 8px;
-  color: var(--paper-dim);
-}
-.compare-row-head .val { color: var(--paper); font-weight: 600; }
-.compare-bar-track {
-  height: 10px;
-  background: rgba(234,230,218,0.08);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.compare-bar-fill {
-  height: 100%;
-  border-radius: 99px;
-}
-.compare-bar-fill.subsidence { background: var(--warning); width: 88%; }
-.compare-bar-fill.slr { background: var(--flood); width: 12%; }
-.compare-footnote {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--paper-dim2);
-  margin-top: 20px;
-  line-height: 1.7;
-  border-top: 1px solid rgba(234,230,218,0.08);
-  padding-top: 16px;
-}
-
-/* ═══ METHODOLOGY ═══ */
-.method-section {
-  padding: 120px 32px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-.method-head {
-  margin-bottom: 56px;
-}
-.method-head h2 {
-  font-family: var(--disp);
-  font-size: clamp(26px, 3.2vw, 38px);
-  font-weight: 600;
-  color: var(--paper);
-  margin-bottom: 14px;
-}
-.method-head p {
-  color: var(--paper-dim);
-  font-size: 15px;
-  line-height: 1.8;
-  font-weight: 300;
-  max-width: 620px;
-}
-
-.method-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1px;
-  background: rgba(234,230,218,0.08);
-  border: 1px solid rgba(234,230,218,0.08);
-  border-radius: 14px;
-  overflow: hidden;
-  margin-bottom: 64px;
-}
-.method-card {
+.tech-panel {
+  position: fixed;
+  top: 0; right: 0;
+  bottom: 0;
+  z-index: 501;
+  width: min(460px, 92vw);
   background: var(--abyss);
-  padding: 24px;
+  border-left: 1px solid var(--line);
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
 }
-.method-card-label {
+.tech-overlay.open .tech-panel { transform: translateX(0); }
+
+.tech-header {
+  position: sticky; top: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--abyss);
+  border-bottom: 1px solid var(--line);
+  z-index: 2;
+}
+.tech-header h2 {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.tech-close {
+  width: 26px; height: 26px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper-dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.tech-close:hover { border-color: var(--warning); color: var(--warning); }
+
+.tech-body { padding: 4px 20px 40px; }
+
+.tech-section { padding: 20px 0; border-bottom: 1px solid var(--line); }
+.tech-section:last-child { border-bottom: none; }
+.tech-section-label {
   font-family: var(--mono);
   font-size: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--flood);
   margin-bottom: 10px;
 }
-.method-card p {
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--paper-dim);
-  font-weight: 300;
-}
-
-.citation-list {
-  list-style: none;
-  border-top: 1px solid rgba(234,230,218,0.1);
-}
-.citation-item {
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 20px;
-  padding: 18px 0;
-  border-bottom: 1px solid rgba(234,230,218,0.08);
-  align-items: baseline;
-}
-.citation-year {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--warning);
-}
-.citation-text {
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--paper-dim);
-  font-weight: 300;
-}
-.citation-text strong { color: var(--paper); font-weight: 500; }
-
-.caveat-box {
-  margin-top: 40px;
-  padding: 20px 24px;
-  background: rgba(232,163,61,0.06);
-  border: 1px solid rgba(232,163,61,0.2);
-  border-radius: 12px;
-}
-.caveat-box-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--warning);
-  margin-bottom: 8px;
-}
-.caveat-box p {
-  font-size: 13px;
+.tech-section p {
+  font-size: 12.5px;
   line-height: 1.75;
   color: var(--paper-dim);
-  font-weight: 300;
+  margin-bottom: 8px;
 }
+.tech-section p:last-child { margin-bottom: 0; }
+.tech-section strong { color: var(--paper); font-weight: 600; }
 
-/* ═══ FOOTER ═══ */
-footer {
-  padding: 40px 32px;
-  border-top: 1px solid rgba(234,230,218,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.footer-left {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--paper-dim2);
-}
-.footer-back {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
+.spec-table { width: 100%; border-collapse: collapse; }
+.spec-table tr { border-bottom: 1px solid var(--line); }
+.spec-table tr:last-child { border-bottom: none; }
+.spec-table td { padding: 8px 0; font-size: 12px; vertical-align: top; }
+.spec-table td:first-child { color: var(--paper-dim2); width: 40%; font-family: var(--mono); font-size: 10.5px; }
+.spec-table td:last-child { color: var(--paper); }
+
+.citation-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--paper-dim);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(234,230,218,0.2);
-  padding-bottom: 2px;
-  transition: color 0.2s, border-color 0.2s;
 }
-.footer-back:hover { color: var(--flood); border-color: var(--flood); }
+.citation-row:last-child { border-bottom: none; }
+.citation-row .cy { font-family: var(--mono); color: var(--warning); font-size: 11px; margin-right: 6px; }
+.citation-row strong { color: var(--paper); font-weight: 500; }
 
-/* ═══ RESPONSIVE ═══ */
-@media (max-width: 860px) {
-  .insight-inner { grid-template-columns: 1fr; gap: 40px; }
-  .hero-intro { left: 20px; right: 20px; top: 76px; max-width: none; }
-  .gauge-dock { padding: 20px 16px 18px; }
-  .gauge-readout { gap: 20px; }
-  .gauge-value { font-size: clamp(22px, 8vw, 32px); }
-  .scroll-cue { display: none; }
-  .shift-section { padding: 90px 20px; }
-  .insight-section { padding: 70px 20px 90px; }
-  .method-section { padding: 80px 20px; }
-  .citation-item { grid-template-columns: 1fr; gap: 4px; }
-  .topbar { padding: 16px 20px; }
+.formula-box {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--paper);
+  background: var(--tide-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-top: 4px;
+}
+.formula-box .op { color: var(--paper-dim2); }
+.formula-box .var-slr { color: var(--flood); }
+.formula-box .var-sub { color: var(--warning); }
+
+.caveat {
+  background: rgba(232,163,61,0.06);
+  border: 1px solid rgba(232,163,61,0.2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.caveat-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warning);
+  margin-bottom: 6px;
+}
+.caveat p { font-size: 11.5px; color: var(--paper-dim); line-height: 1.7; margin: 0; }
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 720px) {
+  .control-panel { width: calc(100vw - 24px); }
+  .readout-row { gap: 18px; }
+  .readout-value { font-size: 18px; }
+  .header-id .sub { display: none; }
+  .coord-readout { display: none; }
 }
 </style>
 </head>
 <body>
 
-<!-- ═══ TOP BAR ═══ -->
-<div class="topbar">
-  <a href="index.html" class="topbar-wordmark"><span class="dot"></span>ROB<em style="font-style:normal;color:var(--warning)">WATCH</em></a>
-  <a href="#" class="topbar-back" id="portfolioBackLink">← Portfolio</a>
-</div>
-
-<!-- ═══ HERO / MAP ═══ -->
-<section class="hero-map-section">
+<div class="app">
   <div id="map"></div>
 
-  <div class="hero-intro">
-    <div class="hero-eyebrow">● Simulasi Interaktif — Pesisir Semarang–Demak</div>
-    <h1 class="hero-title">Tanahnya <em>tenggelam</em><br>lebih cepat dari<br>lautnya naik.</h1>
+  <!-- HEADER -->
+  <div class="header-bar">
+    <div class="header-id">
+      <span class="dot"></span>ROBWATCH
+      <span class="sub">SIMULASI GENANGAN ROB · SEMARANG–DEMAK · v2.0</span>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" id="techToggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Metodologi
+      </button>
+      <a href="#" class="hbtn" id="portfolioLink">↗ Portfolio</a>
+    </div>
   </div>
 
-  <div class="scroll-cue">Scroll untuk cerita lengkap</div>
-
-  <!-- Tide gauge readout dock -->
-  <div class="gauge-dock">
-    <div class="gauge-readout">
-      <div class="gauge-cell">
-        <span class="gauge-label">Tahun</span>
-        <span class="gauge-value year" id="readoutYear">2025</span>
-      </div>
-      <div class="gauge-cell">
-        <span class="gauge-label">Tinggi Air Efektif</span>
-        <span class="gauge-value" id="readoutLevel">0.60<span class="gauge-unit">m</span></span>
-      </div>
-      <div class="gauge-cell">
-        <span class="gauge-label">Rob Aktif</span>
-        <span class="gauge-value flood-stat" id="readoutFlooded">0.95<span class="gauge-unit">km²</span></span>
-      </div>
-      <div class="gauge-cell">
-        <span class="gauge-label">Lahan Berisiko</span>
-        <span class="gauge-value risk-stat" id="readoutRisk">128.27<span class="gauge-unit">km²</span></span>
+  <!-- LEFT CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="panel-block">
+      <div class="panel-label">Skenario Iklim</div>
+      <div class="scenario-select">
+        <button class="scenario-opt active" data-scenario="ssp245" id="optSSP245">
+          <span>SSP2-4.5</span><span class="rate">3.7mm/th</span>
+        </button>
+        <button class="scenario-opt" data-scenario="ssp585" id="optSSP585">
+          <span>SSP5-8.5</span><span class="rate">7.0mm/th</span>
+        </button>
       </div>
     </div>
+    <div class="panel-block">
+      <div class="panel-label">Layer</div>
+      <label class="layer-row">
+        <input type="checkbox" id="toggleFlooded" checked>
+        <span class="layer-swatch flooded"></span>
+        Rob aktif (terhubung laut)
+      </label>
+      <label class="layer-row">
+        <input type="checkbox" id="toggleAtRisk" checked>
+        <span class="layer-swatch atrisk"></span>
+        Berisiko (tertahan tanggul)
+      </label>
+    </div>
+  </div>
 
-    <div class="gauge-controls">
-      <button class="gauge-play" id="playBtn" aria-label="Putar animasi">
+  <!-- BOTTOM DOCK -->
+  <div class="dock">
+    <div class="readout-row">
+      <div class="readout-cell">
+        <span class="readout-label">Tahun</span>
+        <span class="readout-value year" id="roYear">2025</span>
+      </div>
+      <div class="readout-cell">
+        <span class="readout-label">Tinggi Air Efektif</span>
+        <span class="readout-value" id="roLevel">0.60<span class="readout-unit">m</span></span>
+      </div>
+      <div class="readout-cell">
+        <span class="readout-label">Rob Aktif</span>
+        <span class="readout-value flooded" id="roFlooded">0.92<span class="readout-unit">km²</span></span>
+      </div>
+      <div class="readout-cell">
+        <span class="readout-label">Lahan Berisiko</span>
+        <span class="readout-value atrisk" id="roRisk">38.75<span class="readout-unit">km²</span></span>
+      </div>
+      <div class="readout-cell" style="margin-left:auto;">
+        <span class="coord-readout" id="mouseCoords">— , —</span>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <button class="play-btn" id="playBtn" aria-label="Putar animasi">
         <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
-      <div class="slider-wrap">
-        <div class="slider-track-labels"><span>2025</span><span>2050</span></div>
+      <div class="slider-col">
+        <div class="slider-ticks"><span>2025</span><span>2050</span></div>
         <input type="range" class="year-slider" id="yearSlider" min="2025" max="2050" value="2025" step="1" aria-label="Pilih tahun">
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="gauge-bottom-row" style="margin-top:16px;">
-      <div class="scenario-toggle" role="group" aria-label="Skenario iklim">
-        <button class="scenario-btn active" data-scenario="ssp245" id="btnSSP245">SSP2-4.5 · Moderat</button>
-        <button class="scenario-btn" data-scenario="ssp585" id="btnSSP585">SSP5-8.5 · Ekstrem</button>
+<!-- SLIDE-OUT TECHNICAL PANEL -->
+<div class="tech-overlay" id="techOverlay">
+  <div class="tech-panel">
+    <div class="tech-header">
+      <h2>Metodologi & Sumber Data</h2>
+      <button class="tech-close" id="techClose">✕</button>
+    </div>
+    <div class="tech-body">
+
+      <div class="tech-section">
+        <div class="tech-section-label">Model</div>
+        <p>Simulasi genangan berbasis ambang elevasi (bathtub model) dengan koreksi konektivitas hidrologi. Setiap piksel diklasifikasikan <strong>rob aktif</strong> jika terhubung langsung ke laut melalui jalur elevasi rendah kontinu, atau <strong>berisiko</strong> jika berada di bawah ambang air namun terisolasi oleh tanggul/infrastruktur (mis. tambak).</p>
+        <div class="formula-box">
+          level(t) <span class="op">=</span> MHWS <span class="op">+</span><br>
+          &nbsp;&nbsp;<span class="var-slr">SLR_rate × (t−2025)</span> <span class="op">+</span><br>
+          &nbsp;&nbsp;<span class="var-sub">subsidence_rate(x,y) × (t−2025)</span>
+        </div>
       </div>
-      <div class="layer-legend">
-        <span class="legend-item"><span class="legend-swatch flooded"></span>Rob aktif (terhubung laut)</span>
-        <span class="legend-item"><span class="legend-swatch atrisk"></span>Berisiko (di balik tanggul)</span>
+
+      <div class="tech-section">
+        <div class="tech-section-label">Parameter</div>
+        <table class="spec-table">
+          <tr><td>Elevasi</td><td>DEMNAS (BIG), ~8m resolusi, 2 ubin digabung</td></tr>
+          <tr><td>Pasang tertinggi</td><td>MHWS 0.6m — Stasiun Tanjung Mas</td></tr>
+          <tr><td>SLR moderat</td><td>SSP2-4.5, 3.7mm/tahun (IPCC AR6)</td></tr>
+          <tr><td>SLR ekstrem</td><td>SSP5-8.5, 7.0mm/tahun (IPCC AR6)</td></tr>
+          <tr><td>Penurunan tanah</td><td>1.5–15.0 cm/tahun, per-kecamatan</td></tr>
+          <tr><td>Buffer pesisir</td><td>2.5km dari garis pantai — dibatasi berdasarkan sebaran titik ukur InSAR/GNSS tersitasi</td></tr>
+          <tr><td>Konektivitas</td><td>Connected-component 8-arah pada grid DEM</td></tr>
+          <tr><td>Resolusi output</td><td>Minimum unit peta 5,000m², simplifikasi 100m</td></tr>
+        </table>
       </div>
+
+      <div class="tech-section">
+        <div class="tech-section-label">Sumber Data Penurunan Tanah</div>
+        <div class="citation-row"><span class="cy">2023</span><strong>Aditiya & Ito</strong> — Int. J. Applied Earth Observation. Time-series InSAR NSBAS, Sentinel-1, 2015–2022.</div>
+        <div class="citation-row"><span class="cy">2021</span><strong>Bott et al.</strong> — Ocean & Coastal Management. Sentinel-1A, Nov 2014–Okt 2017.</div>
+        <div class="citation-row"><span class="cy">2019</span><strong>Yuwono et al.</strong> — Pengukuran GNSS+InSAR, Sayung, Demak.</div>
+        <div class="citation-row"><span class="cy">2025</span><strong>MDPI Urban Science</strong> — InSAR 2014–2023, Karangroto & Sembungharjo.</div>
+        <div class="citation-row"><span class="cy">2024</span><strong>Kementerian ESDM</strong> — Laporan penurunan tanah Demak.</div>
+      </div>
+
+      <div class="tech-section">
+        <div class="tech-section-label">Batasan</div>
+        <div class="caveat">
+          <div class="caveat-label">Resolusi Data</div>
+          <p>Tingkat penurunan tanah diterapkan per-kecamatan, bukan per-piksel. 7 dari 47 kecamatan menggunakan data terukur langsung; sisanya estimasi konservatif berbasis kedekatan pesisir, ditandai transparan dalam dataset sumber.</p>
+        </div>
+        <div class="caveat" style="margin-top:10px;">
+          <div class="caveat-label">Cakupan Spasial</div>
+          <p>Layer dibatasi pada radius 2.5km dari garis pantai — sesuai jangkauan bukti pengukuran subsidence yang tersedia. Area di luar radius ini tidak dimodelkan, bukan berarti bebas risiko.</p>
+        </div>
+        <div class="caveat" style="margin-top:10px;">
+          <div class="caveat-label">Tujuan</div>
+          <p>Alat edukasi & komunikasi risiko. Bukan model hidrolik presisi untuk perencanaan teknik/infrastruktur.</p>
+        </div>
+      </div>
+
     </div>
   </div>
-</section>
-
-<!-- ═══ THE SHIFT ═══ -->
-<section class="shift-section">
-  <div class="shift-eyebrow">Skala Masalah</div>
-  <p class="shift-statement">
-    Hari ini, <span class="highlight">128 km²</span> pesisir Semarang–Demak sudah berada di bawah level rob tertinggi —
-    ditahan oleh tanggul dan tambak. Pada 2050, angka itu akan mencapai
-    <span class="num" id="shiftFinalNumber">241,5 km²</span>,
-    <span class="highlight">nyaris dua kali lipat luas kota Semarang itu sendiri.</span>
-  </p>
-</section>
-
-<!-- ═══ WHY SUBSIDENCE WINS ═══ -->
-<section class="insight-section">
-  <div class="insight-inner">
-    <div class="insight-text">
-      <h2>Bukan laut yang naik.<br>Tanahnya yang turun.</h2>
-      <p>Narasi umum tentang rob selalu menyalahkan kenaikan air laut global. Tapi di Semarang dan Demak, itu bukan penyebab utama.</p>
-      <p><strong>Penurunan tanah (land subsidence)</strong> akibat pengambilan air tanah berlebihan bergerak 20–40 kali lebih cepat daripada kenaikan air laut di kawasan ini. Sayung turun hingga <strong>15 cm/tahun</strong> — sementara laut global naik sekitar <strong>0,37 cm/tahun</strong>.</p>
-      <p>Artinya: memilih skenario iklim paling ekstrem sekalipun hanya mengubah sedikit hasil simulasi ini. Krisisnya sebagian besar buatan manusia, dan sedang terjadi sekarang — bukan ancaman masa depan yang jauh.</p>
-    </div>
-    <div class="compare-chart">
-      <div class="compare-row">
-        <div class="compare-row-head"><span>Penurunan Tanah (Sayung)</span><span class="val">15,0 cm/thn</span></div>
-        <div class="compare-bar-track"><div class="compare-bar-fill subsidence"></div></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-row-head"><span>Kenaikan Air Laut (SSP5-8.5)</span><span class="val">0,70 cm/thn</span></div>
-        <div class="compare-bar-track"><div class="compare-bar-fill slr"></div></div>
-      </div>
-      <div class="compare-footnote">
-        RASIO ≈ 21:1 — Sumber: Yuwono et al. 2019 (GNSS+InSAR); IPCC AR6 SSP5-8.5 regional projection.
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ METHODOLOGY ═══ -->
-<section class="method-section">
-  <div class="method-head">
-    <h2>Metodologi</h2>
-    <p>Simulasi ini dibangun dari data elevasi resolusi tinggi, tingkat penurunan tanah terukur, dan proyeksi kenaikan air laut IPCC — bukan ilustrasi generik.</p>
-  </div>
-
-  <div class="method-grid">
-    <div class="method-card">
-      <div class="method-card-label">Elevasi</div>
-      <p>DEMNAS (BIG) resolusi ~8m, digabung dari 2 ubin yang mencakup pesisir Semarang–Demak.</p>
-    </div>
-    <div class="method-card">
-      <div class="method-card-label">Penurunan Tanah</div>
-      <p>Tingkat per-kecamatan dari data InSAR/GNSS terpublikasi; wilayah tanpa data terukur menggunakan estimasi konservatif berbasis kedekatan pesisir.</p>
-    </div>
-    <div class="method-card">
-      <div class="method-card-label">Konektivitas Hidrologi</div>
-      <p>Analisis connected-component membedakan genangan yang benar-benar terhubung laut ("rob aktif") dari lahan rendah yang masih tertahan tanggul ("berisiko").</p>
-    </div>
-    <div class="method-card">
-      <div class="method-card-label">Skenario Iklim</div>
-      <p>Dua skenario IPCC AR6: SSP2-4.5 (moderat, 3,7mm/thn) dan SSP5-8.5 (ekstrem, 7,0mm/thn), dikombinasikan dengan pasang tertinggi (MHWS) Stasiun Tanjung Mas.</p>
-    </div>
-  </div>
-
-  <ul class="citation-list">
-    <li class="citation-item">
-      <span class="citation-year">2023</span>
-      <span class="citation-text"><strong>Aditiya & Ito</strong> — "Present-day land subsidence over Semarang revealed by time series InSAR." <em>International Journal of Applied Earth Observation.</em></span>
-    </li>
-    <li class="citation-item">
-      <span class="citation-year">2021</span>
-      <span class="citation-text"><strong>Bott et al.</strong> — "Land subsidence in Jakarta and Semarang Bay." <em>Ocean & Coastal Management.</em></span>
-    </li>
-    <li class="citation-item">
-      <span class="citation-year">2019</span>
-      <span class="citation-text"><strong>Yuwono et al.</strong> — Pengukuran GNSS+InSAR penurunan tanah Sayung, Demak.</span>
-    </li>
-    <li class="citation-item">
-      <span class="citation-year">2025</span>
-      <span class="citation-text"><strong>MDPI Urban Science</strong> — "Subsiding Cities: Governance and Environmental Drivers in Semarang."</span>
-    </li>
-  </ul>
-
-  <div class="caveat-box">
-    <div class="caveat-box-label">Batasan Data</div>
-    <p>Tingkat penurunan tanah diterapkan pada resolusi kecamatan, bukan per-kelurahan atau per-piksel — beberapa area menggunakan estimasi berbasis pola spasial, bukan pengukuran langsung, dan ditandai secara transparan dalam dataset. Simulasi ini adalah alat edukasi dan komunikasi risiko, bukan model hidrolik presisi untuk perencanaan teknik.</p>
-  </div>
-</section>
-
-<footer>
-  <span class="footer-left">RobWatch — dibuat oleh Bobby Arsanto Putro, 2026</span>
-  <a href="#" class="footer-back" id="portfolioFooterLink">← Kembali ke portfolio utama</a>
-</footer>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js"></script>

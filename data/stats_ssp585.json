@@ -1,132 +1,132 @@
 [
   {
     "year": 2025,
-    "flooded_km2": 0.95,
-    "atrisk_km2": 128.27
+    "flooded_km2": 0.92,
+    "atrisk_km2": 38.75
   },
   {
     "year": 2026,
-    "flooded_km2": 0.97,
-    "atrisk_km2": 133.07
+    "flooded_km2": 0.95,
+    "atrisk_km2": 38.9
   },
   {
     "year": 2027,
-    "flooded_km2": 0.97,
-    "atrisk_km2": 137.2
+    "flooded_km2": 0.96,
+    "atrisk_km2": 38.95
   },
   {
     "year": 2028,
-    "flooded_km2": 1.02,
-    "atrisk_km2": 141.54
+    "flooded_km2": 1.01,
+    "atrisk_km2": 39.13
   },
   {
     "year": 2029,
-    "flooded_km2": 1.04,
-    "atrisk_km2": 145.97
+    "flooded_km2": 1.03,
+    "atrisk_km2": 39.68
   },
   {
     "year": 2030,
-    "flooded_km2": 1.07,
-    "atrisk_km2": 150.42
+    "flooded_km2": 1.05,
+    "atrisk_km2": 40.25
   },
   {
     "year": 2031,
-    "flooded_km2": 1.12,
-    "atrisk_km2": 154.63
+    "flooded_km2": 1.1,
+    "atrisk_km2": 40.61
   },
   {
     "year": 2032,
-    "flooded_km2": 1.13,
-    "atrisk_km2": 158.98
+    "flooded_km2": 1.12,
+    "atrisk_km2": 40.88
   },
   {
     "year": 2033,
-    "flooded_km2": 1.11,
-    "atrisk_km2": 163.55
+    "flooded_km2": 1.1,
+    "atrisk_km2": 41.28
   },
   {
     "year": 2034,
-    "flooded_km2": 1.13,
-    "atrisk_km2": 168.3
+    "flooded_km2": 1.12,
+    "atrisk_km2": 41.52
   },
   {
     "year": 2035,
-    "flooded_km2": 1.13,
-    "atrisk_km2": 173.22
+    "flooded_km2": 1.12,
+    "atrisk_km2": 42.02
   },
   {
     "year": 2036,
     "flooded_km2": 1.15,
-    "atrisk_km2": 179.08
+    "atrisk_km2": 42.43
   },
   {
     "year": 2037,
     "flooded_km2": 1.16,
-    "atrisk_km2": 184.42
+    "atrisk_km2": 42.78
   },
   {
     "year": 2038,
     "flooded_km2": 1.13,
-    "atrisk_km2": 189.83
+    "atrisk_km2": 43.26
   },
   {
     "year": 2039,
-    "flooded_km2": 1.15,
-    "atrisk_km2": 194.84
+    "flooded_km2": 1.14,
+    "atrisk_km2": 43.93
   },
   {
     "year": 2040,
     "flooded_km2": 1.15,
-    "atrisk_km2": 199.67
+    "atrisk_km2": 44.41
   },
   {
     "year": 2041,
     "flooded_km2": 1.15,
-    "atrisk_km2": 204.12
+    "atrisk_km2": 44.9
   },
   {
     "year": 2042,
-    "flooded_km2": 1.14,
-    "atrisk_km2": 209.59
+    "flooded_km2": 1.13,
+    "atrisk_km2": 45.09
   },
   {
     "year": 2043,
     "flooded_km2": 1.15,
-    "atrisk_km2": 214.78
+    "atrisk_km2": 45.24
   },
   {
     "year": 2044,
     "flooded_km2": 1.13,
-    "atrisk_km2": 219.78
+    "atrisk_km2": 45.76
   },
   {
     "year": 2045,
     "flooded_km2": 1.13,
-    "atrisk_km2": 224.26
+    "atrisk_km2": 46.0
   },
   {
     "year": 2046,
     "flooded_km2": 1.22,
-    "atrisk_km2": 228.98
+    "atrisk_km2": 46.26
   },
   {
     "year": 2047,
     "flooded_km2": 1.26,
-    "atrisk_km2": 233.91
+    "atrisk_km2": 46.59
   },
   {
     "year": 2048,
     "flooded_km2": 1.42,
-    "atrisk_km2": 238.43
+    "atrisk_km2": 46.51
   },
   {
     "year": 2049,
     "flooded_km2": 1.41,
-    "atrisk_km2": 243.08
+    "atrisk_km2": 46.64
   },
   {
     "year": 2050,
     "flooded_km2": 1.41,
-    "atrisk_km2": 247.83
+    "atrisk_km2": 47.02
   }
 ]
