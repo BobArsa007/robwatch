@@ -89,31 +89,31 @@ async function loadStats(scenario) {
 
 // ---- LAYER STYLING ----
 function floodedStyle() {
-  return { color: '#3480bd', weight: 1, fillColor: '#4a9eda', fillOpacity: 0.65 };
+  return { color: '#0ea5e9', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.55 };
 }
 function atRiskStyle() {
-  return { color: '#c98826', weight: 0.8, fillColor: '#e8a33d', fillOpacity: 0.38 };
+  return { color: '#d97706', weight: 0.8, fillColor: '#f59e0b', fillOpacity: 0.32 };
+
 }
 
 function popupFor(layerLabel) {
   return function (feature, layer) {
     layer.bindPopup(
-      `<div style="min-width:120px;">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#e8a33d;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.06em;">${layerLabel}</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;">Tahun ${feature.properties.year ?? '—'}</div>
+      `<div style="min-width:140px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#f59e0b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">${layerLabel}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#f1f5f9;">Tahun ${feature.properties.year ?? '—'}</div>
       </div>`
     );
   };
 }
 
-// ---- UI FEEDBACK HELPERS ----
+// ---- UI FEEDBACK ----
 let loadingTimer = null;
 function setMapLoading(isLoading) {
   const el = document.getElementById('mapLoading');
   if (!el) return;
   clearTimeout(loadingTimer);
   if (isLoading) {
-    // small delay so quick loads (cache hits) don't flash the indicator
     loadingTimer = setTimeout(() => el.classList.add('show'), 120);
   } else {
     el.classList.remove('show');
@@ -144,6 +144,47 @@ function updateSliderFill() {
   const max = parseInt(slider.max, 10);
   const pct = ((parseInt(slider.value, 10) - min) / (max - min)) * 100;
   fill.style.width = `${pct}%`;
+}
+
+// ---- SPARKLINE ----
+function updateSparkline(stats, currentYear) {
+  const sparkValue = document.getElementById('sparkValue');
+  const sparkLine = document.getElementById('sparkLine');
+  const sparkArea = document.getElementById('sparkArea');
+  const sparkDot = document.getElementById('sparkDot');
+  if (!stats || !sparkLine) return;
+
+  const data = stats.map(s => s.flooded_km2);
+  const maxVal = Math.max(...data, 0.01);
+  const minVal = Math.min(...data);
+  const range = maxVal - minVal || 1;
+
+  const w = 200, h = 50, pad = 4;
+  const points = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - minVal) / range) * (h - pad * 2);
+    return [x, y];
+  });
+
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  sparkLine.setAttribute('d', d);
+
+  const areaD = `${d} L ${points[points.length-1][0].toFixed(1)} ${h} L ${points[0][0].toFixed(1)} ${h} Z`;
+  sparkArea.setAttribute('d', areaD);
+
+  const idx = stats.findIndex(s => s.year === currentYear);
+  if (idx >= 0 && points[idx]) {
+    sparkDot.setAttribute('cx', points[idx][0].toFixed(1));
+    sparkDot.setAttribute('cy', points[idx][1].toFixed(1));
+    sparkDot.style.opacity = 1;
+  } else {
+    sparkDot.style.opacity = 0;
+  }
+
+  const row = stats.find(s => s.year === currentYear);
+  if (row && sparkValue) {
+    sparkValue.innerHTML = `${row.flooded_km2.toFixed(2)}<span class="sparkline-unit">km²</span>`;
+  }
 }
 
 // ---- RENDER ----
@@ -179,14 +220,13 @@ async function renderMapForState() {
 function computeEffectiveLevel(year, scenario) {
   const yearsElapsed = year - CONFIG.minYear;
   const slr = SLR_RATES[scenario] * yearsElapsed;
-  const maxSubsidenceM = 0.15 * yearsElapsed; // headline max-rate (Sayung) figure
+  const maxSubsidenceM = 0.15 * yearsElapsed;
   return MHWS + slr + maxSubsidenceM;
 }
 
 function flashValue(el) {
   if (!el) return;
   el.classList.remove('updating');
-  // force reflow so the animation can re-trigger on repeated updates
   void el.offsetWidth;
   el.classList.add('updating');
 }
@@ -210,6 +250,7 @@ async function updateReadout() {
       roFlooded.innerHTML = `${row.flooded_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
       roRisk.innerHTML = `${row.atrisk_km2.toFixed(2)}<span class="readout-unit">km²</span>`;
       [roFlooded, roRisk].forEach(flashValue);
+      updateSparkline(stats, year);
       return;
     }
   }
@@ -256,8 +297,14 @@ function togglePlay() {
 }
 
 function toggleLayer(layerKey, checked) {
-  if (layerKey === 'flooded') state.showFlooded = checked;
-  if (layerKey === 'atrisk') state.showAtRisk = checked;
+  if (layerKey === 'flooded') {
+    state.showFlooded = checked;
+    document.getElementById('layerFlooded').classList.toggle('active', checked);
+  }
+  if (layerKey === 'atrisk') {
+    state.showAtRisk = checked;
+    document.getElementById('layerAtRisk').classList.toggle('active', checked);
+  }
   renderMapForState();
 }
 
@@ -272,7 +319,6 @@ function closeTechPanel() {
 }
 
 // ---- PORTFOLIO LINK ----
-// Update this to the actual deployed URL of the main portfolio site.
 function wirePortfolioLink() {
   document.getElementById('portfolioLink').href = 'https://bobarsa007.github.io/';
 }
@@ -286,6 +332,8 @@ function init() {
   document.getElementById('playBtn').addEventListener('click', togglePlay);
   document.getElementById('optSSP245').addEventListener('click', () => setScenario('ssp245'));
   document.getElementById('optSSP585').addEventListener('click', () => setScenario('ssp585'));
+
+  // New layer toggle wiring
   document.getElementById('toggleFlooded').addEventListener('change', (e) => toggleLayer('flooded', e.target.checked));
   document.getElementById('toggleAtRisk').addEventListener('change', (e) => toggleLayer('atrisk', e.target.checked));
 
